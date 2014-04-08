@@ -36,6 +36,10 @@ RUN chown koudaiii /home/koudaiii/.ssh/authorized_keys;chmod 600 /home/koudaiii/
 RUN echo "koudaiii ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/koudaiii
 RUN chmod 440 /etc/sudoers.d/koudaiii
 
+# Change TimeZone
+RUN mv /etc/localtime /etc/localtime.org
+RUN ln -s /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+
 # expose for sshd
 EXPOSE 2222
 CMD ["/usr/sbin/sshd","-D"]
