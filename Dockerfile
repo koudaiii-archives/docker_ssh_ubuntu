@@ -8,6 +8,7 @@ MAINTAINER koudaiiii "cs006061@gmail.com"
 # make sure the package repository is up to date
 RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
 RUN apt-get update
+RUN apt-get upgrade -y
 
 #Dev tools for all Docker
 RUN apt-get -y install git vim
@@ -16,8 +17,9 @@ RUN apt-get -y install git vim
 RUN apt-get -y install openssh-server
 RUN mkdir /var/run/sshd
 RUN chmod 711 /var/run/sshd
+
 # setup sshd
-ADD ./sshd_config /etc/ssh/sshd_config
+RUN  sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config && sed -i "s/UsePAM.*/UsePAM no/g" /etc/ssh/sshd_config
 
 #install user
 RUN apt-get -y install passwd sudo
@@ -36,10 +38,16 @@ RUN chown koudaiii /home/koudaiii/.ssh/authorized_keys;chmod 600 /home/koudaiii/
 RUN echo "koudaiii ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/koudaiii
 RUN chmod 440 /etc/sudoers.d/koudaiii
 
-# Change TimeZone
+# setup timezone
 RUN mv /etc/localtime /etc/localtime.org
 RUN ln -s /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
+# setup Supervisor
+RUN apt-get install -y supervisor
+RUN mkdir -p /var/run/sshd
+RUN mkdir -p /var/log/supervisor
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # expose for sshd
-EXPOSE 2222
-CMD ["/usr/sbin/sshd","-D"]
+EXPOSE 22
+CMD ["/usr/bin/supervisord"]
