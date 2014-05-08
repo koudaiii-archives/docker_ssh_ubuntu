@@ -2,23 +2,27 @@
 #
 # VERSION       1
 
-FROM ubuntu:12.04
+FROM ubuntu:14.04
 MAINTAINER koudaiiii "cs006061@gmail.com"
 
 # make sure the package repository is up to date
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
+RUN mv /etc/apt/sources.list /etc/apt/sources.list.original
+ADD ./sources.list /etc/apt/sources.list
+RUN apt-get clean
 RUN apt-get update
-RUN apt-get upgrade -y
+#RUN apt-get upgrade -y
 
 #Dev tools for all Docker
-RUN apt-get -y install git vim
+RUN apt-get -y install git 
+RUN apt-get -y install aptitude
 
-#install ssh
+#Install ssh
 RUN apt-get -y install openssh-server
 RUN mkdir /var/run/sshd
 RUN chmod 711 /var/run/sshd
 
-# setup sshd
+
+#Setup sshd
 RUN  sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config && sed -i "s/UsePAM.*/UsePAM no/g" /etc/ssh/sshd_config
 
 #install user
@@ -44,10 +48,10 @@ RUN ln -s /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 # setup Supervisor
 RUN apt-get install -y supervisor
-RUN mkdir -p /var/run/sshd
-RUN mkdir -p /var/log/supervisor
+RUN mkdir -p /var/run/sshd; mkdir -p /var/log/supervisor
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# expose for sshd
+# Expose ports.
 EXPOSE 22
+
 CMD ["/usr/bin/supervisord"]
